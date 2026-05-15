@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>هاشم بلاي | مشغل فيديو فاخر</title>
+    
+    <!-- Google Fonts & Font Awesome 6 -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', 'Aref Ruqaa', sans-serif;
+        }
+
+        /* ========== VARIABLES & GLOBAL ========== */
+        :root {
+            --glow-primary: #0ff;
+            --glow-secondary: #f0f;
+            --glass-bg: rgba(15, 25, 45, 0.55);
+            --glass-border: rgba(0, 255, 255, 0.4);
+            --text-light: #f0f9ff;
+            --btn-hover: #0ff;
+            --transition-default: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0f1f, #000000);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1.5rem;
+            transition: background 0.5s ease;
+            position: relative;
+        }
+
+        /* الثيمات المختلفة */
+        body.theme-neon {
+            background: radial-gradient(circle at 70% 20%, #0a1a2a, #010101);
+        }
+        body.theme-purple {
+            background: linear-gradient(135deg, #3c096c, #10002b);
+        }
+        body.theme-cyan {
+            background: linear-gradient(135deg, #00213d, #001524);
+        }
+        body.theme-green {
+            background: linear-gradient(135deg, #0b3b1f, #021a0a);
+        }
+
+        /* شاشة البداية الفخمة */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #0a0e1a, #000000);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: opacity 1s ease, visibility 0.5s;
+            opacity: 1;
+            visibility: visible;
+            font-family: inherit;
+        }
+        .splash-content {
+            text-align: center;
+            animation: floatGlow 2s infinite alternate;
+        }
+        .splash-content i {
+            font-size: 6rem;
+            color: #0ff;
+            text-shadow: 0 0 20px #0ff, 0 0 40px #0ff;
+            margin-bottom: 1rem;
+        }
+        .splash-content h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 2px;
+        }
+        .splash-content p {
+            color: #ccc;
+            font-size: 1.2rem;
+            margin-top: 1rem;
+        }
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(0,255,255,0.2);
+            border-top: 5px solid #0ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes floatGlow {
+            0% { transform: translateY(0px); text-shadow: 0 0 5px #0ff;}
+            100% { transform: translateY(-15px); text-shadow: 0 0 30px #0ff, 0 0 15px #f0f;}
+        }
+
+        /* الحاوية الرئيسية الزجاجية */
+        .glass-player {
+            width: 100%;
+            max-width: 1350px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border-radius: 2.5rem;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5), 0 0 20px rgba(0,255,255,0.2);
+            padding: 1.5rem;
+            transition: var(--transition-default);
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ترويسة أنيقة */
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(0,255,255,0.3);
+        }
+        .player-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(130deg, #0ff, #b0f0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+        .action-icons i {
+            font-size: 1.7rem;
+            margin-right: 1rem;
+            cursor: pointer;
+            color: #0ff;
+            transition: 0.2s;
+            background: rgba(0,0,0,0.5);
+            padding: 8px;
+            border-radius: 50%;
+        }
+        .action-icons i:hover {
+            color: white;
+            background: #0ff;
+            text-shadow: 0 0 8px #0ff;
+            transform: scale(1.05);
+        }
+
+        /* حاوية الفيديو مع تأثير نيون */
+        .video-zone {
+            position: relative;
+            border-radius: 1.8rem;
+            overflow: hidden;
+            box-shadow: 0 0 25px rgba(0,255,255,0.3);
+            background: #000;
+            transition: all 0.3s;
+        }
+        video {
+            width: 100%;
+            display: block;
+            border-radius: 1.8rem;
+            transition: transform 0.3s, filter 0.2s;
+            background: #000;
+        }
+        body.cinema-mode .glass-player {
+            padding: 0;
+            background: black;
+            border-radius: 0;
+            max-width: 100vw;
+        }
+        body.cinema-mode .player-header, body.cinema-mode .controls-panel, body.cinema-mode .my-buttons-flex {
+            display: none;
+        }
+        body.cinema-mode .video-zone {
+            border-radius: 0;
+        }
+        body.cinema-mode video {
+            border-radius: 0;
+        }
+
+        /* لوحة التحكم المتطورة */
+        .controls-panel {
+            margin-top: 1.5rem;
+            background: rgba(10, 20, 35, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            padding: 0.8rem 1.2rem;
+            border: 1px solid rgba(0, 210, 255, 0.3);
+        }
+        .progress-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .time-display {
+            font-family: monospace;
+            font-size: 0.9rem;
+            background: #00000077;
+            padding: 4px 10px;
+            border-radius: 30px;
+            letter-spacing: 1px;
+        }
+        .progress-bar-container {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            position: relative;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #0ff, #f0f);
+            border-radius: 10px;
+            position: relative;
+            transition: width 0.1s linear;
+        }
+        .progress-bar-container:hover {
+            height: 9px;
+        }
+        .main-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin: 10px 0;
+        }
+        .ctrl-btn {
+            background: rgba(0, 210, 255, 0.15);
+            border: 1px solid rgba(0, 210, 255, 0.5);
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: bold;
+            color: #0ff;
+            font-size: 1rem;
+            transition: 0.2s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ctrl-btn i {
+            font-size: 1.1rem;
+        }
+        .ctrl-btn:hover {
+            background: #0ff;
+            color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 0 12px #0ff;
+            border-color: white;
+        }
+        .volume-slider {
+            width: 100px;
+            background: #222;
+            accent-color: #0ff;
+        }
+
+        /* شريط الأزرار السريعة (رفع، ثيمات، سرعة) */
+        .quick-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0 5px;
+        }
+
+        /* مودال الإعدادات الراقي */
+        .modal-settings {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.25s;
+        }
+        .modal-settings.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-content {
+            background: rgba(10, 25, 45, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 2rem;
+            width: 90%;
+            max-width: 550px;
+            padding: 1.8rem;
+            border: 1px solid #0ff;
+            box-shadow: 0 0 45px rgba(0,255,255,0.3);
+            direction: rtl;
+        }
+        .modal-content h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #0ff;
+        }
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid rgba(0,255,255,0.2);
+            padding-bottom: 0.8rem;
+        }
+        .setting-row label {
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 180px;
+            background: #0ff;
+        }
+        select, .theme-btns {
+            background: #111;
+            color: #0ff;
+            border: 1px solid #0ff;
+            border-radius: 30px;
+            padding: 6px 12px;
+        }
+        .close-modal {
+            background: #ff3366;
+            margin-top: 1rem;
+            width: 100%;
+        }
+        .signature {
+            position: fixed;
+            bottom: 15px;
+            left: 20px;
+            font-size: 1rem;
+            color: rgba(0, 210, 255, 0.6);
+            z-index: 999;
+            background: rgba(0,0,0,0.4);
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-weight: bold;
+            pointer-events: none;
+        }
+        @media (max-width: 680px) {
+            .glass-player { padding: 0.8rem; }
+            .ctrl-btn { padding: 5px 12px; font-size: 0.8rem;}
+            .player-header h2 { font-size: 1.2rem; }
+        }
+        i, button { cursor: pointer; }
+        .rotate-animation {
+            transition: transform 0.3s;
+        }
+    </style>
+</head>
+<body class="theme-neon">
+
+<!-- شاشة البداية الفخمة -->
+<div class="splash-screen" id="splashScreen">
+    <div class="splash-content">
+        <i class="fas fa-film"></i>
+        <h1>هاشم بلاي</h1>
+        <p>تجربة مشاهدة فائقة | نيون زجاجي</p>
+        <div class="loader"></div>
+        <p style="font-size: 0.9rem;">يتم تجهيز المسرح الخاص بك...</p>
+    </div>
+</div>
+
+<!-- المشغل الرئيسي -->
+<div class="glass-player">
+    <div class="player-header">
+        <h2><i class="fas fa-crown" style="color: #ffd966;"></i>  مشغل هاشم المتكامل</h2>
+        <div class="action-icons">
+            <i class="fas fa-cog" id="openSettingsBtn" title="الإعدادات المتقدمة"></i>
+            <i class="fas fa-palette" id="quickThemeBtn" title="تغيير الثيم السريع"></i>
+        </div>
+    </div>
+
+    <div class="video-zone">
+        <video id="mainVideo" controlslist="nodownload"></video>
+    </div>
+
+    <!-- لوحة التحكم المخصصة -->
+    <div class="controls-panel">
+        <div class="progress-area">
+            <span class="time-display" id="currentTime">00:00</span>
+            <div class="progress-bar-container" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <span class="time-display" id="durationTime">00:00</span>
+        </div>
+        <div class="main-buttons">
+            <button class="ctrl-btn" id="playPauseBtn"><i class="fas fa-play"></i> تشغيل</button>
+            <button class="ctrl-btn" id="backwardBtn"><i class="fas fa-backward-step"></i> -10</button>
+            <button class="ctrl-btn" id="forwardBtn"><i class="fas fa-forward-step"></i> +10</button>
+            <button class="ctrl-btn" id="volumeBtn"><i class="fas fa-volume-up"></i> كتم</button>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.8" class="volume-slider">
+            <button class="ctrl-btn" id="fullscreenBtn"><i class="fas fa-expand"></i> ملء</button>
+            <button class="ctrl-btn" id="rotateBtn"><i class="fas fa-rotate-right"></i> تدوير</button>
+        </div>
+        <div class="quick-bar">
+            <button class="ctrl-btn" id="uploadBtn"><i class="fas fa-upload"></i> رفع فيديو</button>
+            <input type="file" id="fileInput" accept="video/*" style="display: none;">
+            <button class="ctrl-btn" id="speedBtn"><i class="fas fa-gauge-high"></i> السرعة</button>
+            <button class="ctrl-btn" id="captureBtn"><i class="fas fa-camera"></i> لقطة</button>
+            <button class="ctrl-btn" id="cinemaModeBtn"><i class="fas fa-clapperboard"></i> سينما</button>
+            <button class="ctrl-btn" id="brightnessUp"><i class="fas fa-sun"></i> إضاءة+</button>
+            <button class="ctrl-btn" id="brightnessDown"><i class="fas fa-moon"></i> إضاءة-</button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال الإعدادات المتقدمة -->
+<div class="modal-settings" id="settingsModal">
+    <div class="modal-content">
+        <h3><i class="fas fa-sliders-h"></i> الإعدادات السحرية</h3>
+        <div class="setting-row">
+            <label>🌞 السطوع</label>
+            <input type="range" id="brightnessRange" min="20" max="200" value="100">
+            <span id="brightnessVal">100%</span>
+        </div>
+        <div class="setting-row">
+            <label>🎨 التباين</label>
+            <input type="range" id="contrastRange" min="50" max="200" value="100">
+            <span id="contrastVal">100%</span>
+        </div>
+        <div class="setting-row">
+            <label>🌀 التشبع</label>
+            <input type="range" id="saturateRange" min="0" max="200" value="100">
+            <span id="saturateVal">100%</span>
+        </div>
+        <div class="setting-row">
+            <label>⚡ سرعة التشغيل</label>
+            <select id="playbackRateSelect">
+                <option value="0.5">0.5x</option>
+                <option value="0.75">0.75x</option>
+                <option value="1" selected>1x عادي</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2">2x</option>
+            </select>
+        </div>
+        <div class="setting-row">
+            <label>🎭 الثيمات الفاخرة</label>
+            <div style="display: flex; gap: 10px;">
+                <button data-theme="neon" class="ctrl-btn" style="background:#0ff20f;">نيون</button>
+                <button data-theme="purple" class="ctrl-btn" style="background:#b300ff;">بنفسجي</button>
+                <button data-theme="cyan" class="ctrl-btn" style="background:#00b7ff;">سيان</button>
+                <button data-theme="green" class="ctrl-btn" style="background:#1f9a00;">أخضر</button>
+            </div>
+        </div>
+        <div class="setting-row">
+            <label>🖼️ إعادة ضبط الفلاتر</label>
+            <button id="resetFiltersBtn" class="ctrl-btn">إعادة التعيين</button>
+        </div>
+        <button id="closeSettingsBtn" class="ctrl-btn close-modal"><i class="fas fa-check"></i> إغلاق</button>
+    </div>
+</div>
+
+<div class="signature"><i class="fas fa-code"></i> محمد هاشم | مشغل احترافي</div>
+
+<script>
+    (function(){
+        // العناصر الأساسية
+        const video = document.getElementById('mainVideo');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const backwardBtn = document.getElementById('backwardBtn');
+        const forwardBtn = document.getElementById('forwardBtn');
+        const volumeBtn = document.getElementById('volumeBtn');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const rotateBtn = document.getElementById('rotateBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const currentTimeSpan = document.getElementById('currentTime');
+        const durationSpan = document.getElementById('durationTime');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileInput = document.getElementById('fileInput');
+        const speedBtn = document.getElementById('speedBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const cinemaModeBtn = document.getElementById('cinemaModeBtn');
+        const brightnessUp = document.getElementById('brightnessUp');
+        const brightnessDown = document.getElementById('brightnessDown');
+        const openSettings = document.getElementById('openSettingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const closeSettings = document.getElementById('closeSettingsBtn');
+        const brightnessRange = document.getElementById('brightnessRange');
+        const contrastRange = document.getElementById('contrastRange');
+        const saturateRange = document.getElementById('saturateRange');
+        const playbackRateSelect = document.getElementById('playbackRateSelect');
+        const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+        const quickThemeBtn = document.getElementById('quickThemeBtn');
+
+        let rotateDeg = 0;
+        let isMuted = false;
+
+        // إخفاء شاشة البداية
+        const splash = document.getElementById('splashScreen');
+        setTimeout(() => {
+            if(splash) {
+                splash.style.opacity = '0';
+                setTimeout(() => splash.style.display = 'none', 800);
+            }
+        }, 2200);
+
+        // Helper: تنسيق الوقت
+        function formatTime(seconds) {
+            if(isNaN(seconds)) return "00:00";
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            if(hrs > 0) return `${hrs}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+            return `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        }
+
+        // تحديث شريط التقدم
+        function updateProgress() {
+            if(video.duration) {
+                const percent = (video.currentTime / video.duration) * 100;
+                progressFill.style.width = percent + '%';
+                currentTimeSpan.innerText = formatTime(video.currentTime);
+            }
+        }
+        video.addEventListener('timeupdate', updateProgress);
+        video.addEventListener('loadedmetadata', () => {
+            durationSpan.innerText = formatTime(video.duration);
+            progressFill.style.width = '0%';
+        });
+
+        // التشغيل/الإيقاف القوي
+        function togglePlayPause() {
+            if(video.paused || video.ended) {
+                video.play().catch(e => console.log("auto-play prevented", e));
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i> إيقاف';
+            } else {
+                video.pause();
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i> تشغيل';
+            }
+        }
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        video.addEventListener('play', () => playPauseBtn.innerHTML = '<i class="fas fa-pause"></i> إيقاف');
+        video.addEventListener('pause', () => playPauseBtn.innerHTML = '<i class="fas fa-play"></i> تشغيل');
+
+        // تقدم وتأخير 10 ثواني
+        backwardBtn.addEventListener('click', () => video.currentTime = Math.max(0, video.currentTime - 10));
+        forwardBtn.addEventListener('click', () => video.currentTime = Math.min(video.duration, video.currentTime + 10));
+
+        // الصوت
+        function updateVolumeIcon() {
+            if(video.muted || video.volume === 0) volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            else if(video.volume < 0.5) volumeBtn.innerHTML = '<i class="fas fa-volume-down"></i>';
+            else volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+        }
+        volumeSlider.addEventListener('input', (e) => {
+            video.volume = parseFloat(e.target.value);
+            video.muted = false;
+            updateVolumeIcon();
+        });
+        volumeBtn.addEventListener('click', () => {
+            video.muted = !video.muted;
+            updateVolumeIcon();
+            volumeSlider.value = video.muted ? 0 : (video.volume || 0.8);
+        });
+        video.addEventListener('volumechange', () => {
+            volumeSlider.value = video.muted ? 0 : video.volume;
+            updateVolumeIcon();
+        });
+        video.volume = 0.8;
+        volumeSlider.value = 0.8;
+
+        // ملء الشاشة
+        fullscreenBtn.addEventListener('click', () => {
+            if(!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // تدوير الفيديو
+        rotateBtn.addEventListener('click', () => {
+            rotateDeg = (rotateDeg + 90) % 360;
+            video.style.transform = `rotate(${rotateDeg}deg)`;
+        });
+
+        // شريط التقدم قابل للنقر
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            video.currentTime = pos * video.duration;
+        });
+
+        // رفع فيديو
+        uploadBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                const url = URL.createObjectURL(file);
+                video.src = url;
+                video.load();
+                video.play().catch(()=>{});
+                // إعادة تعيين الفلاتر والتدوير
+                video.style.filter = 'brightness(100%) contrast(100%) saturate(100%)';
+                video.style.transform = 'rotate(0deg)';
+                rotateDeg = 0;
+                if(brightnessRange) brightnessRange.value = 100;
+                if(contrastRange) contrastRange.value = 100;
+                if(saturateRange) saturateRange.value = 100;
+                updateFilter();
+            }
+        });
+
+        // التحكم بالسرعة عبر زر السرعة (دورة سريعة)
+        const speeds = [1, 1.25, 1.5, 2, 0.75, 0.5];
+        let speedIdx = 0;
+        speedBtn.addEventListener('click', () => {
+            speedIdx = (speedIdx + 1) % speeds.length;
+            video.playbackRate = speeds[speedIdx];
+            speedBtn.innerHTML = `<i class="fas fa-tachometer-alt"></i> ${speeds[speedIdx]}x`;
+        });
+
+        // لقطة شاشة
+        captureBtn.addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const link = document.createElement('a');
+            link.download = `hashem-snapshot-${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        // وضع السينما (ملء الشاشة بدون عناصر)
+        cinemaModeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('cinema-mode');
+            if(document.body.classList.contains('cinema-mode')) {
+                cinemaModeBtn.innerHTML = '<i class="fas fa-compress"></i> خروج سينما';
+            } else {
+                cinemaModeBtn.innerHTML = '<i class="fas fa-clapperboard"></i> سينما';
+            }
+        });
+
+        // تحكم الإضاءة السريع
+        let brightVal = 100;
+        function updateVideoFilters(bright, contrast, saturate) {
+            video.style.filter = `brightness(${bright}%) contrast(${contrast}%) saturate(${saturate}%)`;
+        }
+        brightnessUp.addEventListener('click', () => {
+            brightVal = Math.min(200, brightVal + 15);
+            const cont = contrastRange ? contrastRange.value : 100;
+            const sat = saturateRange ? saturateRange.value : 100;
+            updateVideoFilters(brightVal, cont, sat);
+            if(brightnessRange) brightnessRange.value = brightVal;
+        });
+        brightnessDown.addEventListener('click', () => {
+            brightVal = Math.max(20, brightVal - 15);
+            const cont = contrastRange ? contrastRange.value : 100;
+            const sat = saturateRange ? saturateRange.value : 100;
+            updateVideoFilters(brightVal, cont, sat);
+            if(brightnessRange) brightnessRange.value = brightVal;
+        });
+
+        // ========== مودال الإعدادات المتكامل ==========
+        function openModal() { settingsModal.classList.add('active'); }
+        function closeModal() { settingsModal.classList.remove('active'); }
+        openSettings.addEventListener('click', openModal);
+        closeSettings.addEventListener('click', closeModal);
+        settingsModal.addEventListener('click', (e) => { if(e.target === settingsModal) closeModal(); });
+
+        // ضبط الفلاتر من المودال
+        function updateFilter() {
+            const b = brightnessRange.value;
+            const c = contrastRange.value;
+            const s = saturateRange.value;
+            video.style.filter = `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
+            document.getElementById('brightnessVal').innerText = b + '%';
+            document.getElementById('contrastVal').innerText = c + '%';
+            document.getElementById('saturateVal').innerText = s + '%';
+            brightVal = b;
+        }
+        brightnessRange.addEventListener('input', updateFilter);
+        contrastRange.addEventListener('input', updateFilter);
+        saturateRange.addEventListener('input', updateFilter);
+
+        playbackRateSelect.addEventListener('change', (e) => {
+            video.playbackRate = parseFloat(e.target.value);
+            speedIdx = speeds.findIndex(s => s === video.playbackRate);
+            if(speedIdx === -1) speedIdx = 0;
+            speedBtn.innerHTML = `<i class="fas fa-tachometer-alt"></i> ${video.playbackRate}x`;
+        });
+
+        resetFiltersBtn.addEventListener('click', () => {
+            brightnessRange.value = 100;
+            contrastRange.value = 100;
+            saturateRange.value = 100;
+            updateFilter();
+            video.style.transform = 'rotate(0deg)';
+            rotateDeg = 0;
+        });
+
+        // تغيير الثيم العام
+        const themes = ['neon', 'purple', 'cyan', 'green'];
+        function setTheme(themeName) {
+            document.body.className = '';
+            document.body.classList.add(`theme-${themeName}`);
+            localStorage.setItem('hashem_theme', themeName);
+        }
+        document.querySelectorAll('[data-theme]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const th = btn.getAttribute('data-theme');
+                setTheme(th);
+                closeModal();
+            });
+        });
+        quickThemeBtn.addEventListener('click', () => {
+            let current = '';
+            if(document.body.classList.contains('theme-neon')) current = 'neon';
+            else if(document.body.classList.contains('theme-purple')) current = 'purple';
+            else if(document.body.classList.contains('theme-cyan')) current = 'cyan';
+            else if(document.body.classList.contains('theme-green')) current = 'green';
+            else current = 'neon';
+            let nextIdx = (themes.indexOf(current) + 1) % themes.length;
+            setTheme(themes[nextIdx]);
+        });
+        // استرجاع الثيم المحفوظ
+        const savedTheme = localStorage.getItem('hashem_theme');
+        if(savedTheme) setTheme(savedTheme);
+        else setTheme('neon');
+
+        // فيديو تجريبي افتراضي (عينة من مصدر عام لمزيد من الجاذبية)
+        // إذا لم يتم رفع فيديو نعرض رسالة أو نعطي فيديو تجريبي جميل من unsplash? لكن نفضل فيديو توضيحي قصير.
+        // نعطي فيديو افتراضي (فيديو تجريبي من pexels لكن للحفاظ على عدم اعتماد نت نضع مصدر بسيط sample)
+        // لجعل التجربة فورية: فيديو نموذجي من الإنترنت (فيديو قصير عام متاح)
+        const demoVideo = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
+        video.src = demoVideo;
+        video.load();
+        video.addEventListener('loadeddata', () => {
+            durationSpan.innerText = formatTime(video.duration);
+        });
+        // تحسين دالة التشغيل لتفادي مشاكل autoplay
+        video.addEventListener('canplay', () => {});
+        // دالة قوية لتشغيل تلقائي بعد تحميل الصفحة بشرط تفاعل المستخدم، لكن جعلها هادئة
+        document.body.addEventListener('click', function once() {
+            if(video.paused && video.src) video.play().catch(e=>{});
+            document.body.removeEventListener('click', once);
+        }, { once: true });
+        
+        // التأكد من أن عناصر التحكم بالصوت سليمة
+        window.addEventListener('load', () => {
+            updateFilter();
+            video.volume = 0.8;
+        });
+    })();
+</script>
+</body>
+  </html>
